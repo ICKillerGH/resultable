@@ -117,7 +117,7 @@ const createUser = Result.resultableFn(async function(name: string) {
     return Result.ok({name})
 });
 
-// Invlid code
+// Invalid code
 // Type '{ name: string; }' is not assignable to type 'readonly [value: any, error: undefined] | readonly [value: undefined, error: BaseError<string>]'.
 const createUser2 = Result.resultableFn(async function(name: string) {
     if (name.length < 3) {
