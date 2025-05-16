@@ -3,14 +3,18 @@
 A small package to handle errors as values
 
 ```typescript
-import { Result } from "resultable";
+import { Match, Result } from "resultable";
 
 class UserNotFound extends Result.BrandedError("UserNotFound") {}
+class UserServiceUnavailable extends Result.BrandedError("UserServiceUnavailable") {}
 
-declare const [user, userError]: Result.Result<{id: 1; name: string}, UserNotFound>;
+declare const [user, userError]: Result.Result<{id: 1; name: string}, UserNotFound|UserServiceUnavailable>;
 
 if (userError) {
-    console.log("Handle user error");
+    Match.matchBrand(userError)({
+        "UserNotFound": () => console.log("User not found"),
+        "UserServiceUnavailable": () => console.log("User service unavailable")
+    })
 } else {
     console.log("User", user);
 }
