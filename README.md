@@ -22,8 +22,8 @@ if (userError) {
 
 # Features
 
+- Result type in the form of a tuple [value, error]
 - BrandedErrors to differentiate between different errors
-- Go-like "Result" type in the form of a tuple [value, error]
 - Pattern matching on errors
 
 # Installation
@@ -44,7 +44,7 @@ type Result<T, E extends BaseError<string>> = OkResult<T> | ErrorResult<E>;
 ```
 
 ## Result.BrandedError
-The base error from which all resultable errors must extend. It adds a __brand readonly property to differentiate between type of different errors.
+The base error from which all resultable errors must extend. It adds a __brand readonly property to differentiate between different type of  errors.
 
 Each "brand" must be unique to make pattern matching work, we recommend using the path of the file plus the class name for the brand, for example: Result.BrandedError("@Users/Errors/UserNotFound")
 
@@ -86,19 +86,19 @@ function tryCatch<T, E extends BaseError<string>>(
 ```typescript
 import { Result } from "resultable";
 
-const jsonParse: Promise<Result.Result<Response, Result.UnknownException>> = Result.tryCatch(
+const fetchTest: Promise<Result.Result<Response, Result.UnknownException>> = Result.tryCatch(
     () => fetch("https://api.test.com")
 );
 
-class JsonParseErorr extends Result.BrandedError("JsonParseErorr") {
+class FetchError extends Result.BrandedError("FetchError") {
     constructor(public readonly cause: unknown) {
         super();
     }
 }
 
-const jsonParse2: Promise<Result.Result<Response, JsonParseErorr>> = Result.tryCatch(
+const fetchTest2: Promise<Result.Result<Response, FetchError>> = Result.tryCatch(
     () => fetch("https://api.test.com"),
-    (cause) => new JsonParseErorr(cause)
+    (cause) => new FetchError(cause)
 );
 ```
 
@@ -122,7 +122,7 @@ const createUser = Result.resultableFn(async function(name: string) {
 });
 
 // Invalid code
-// Type '{ name: string; }' is not assignable to type 'readonly [value: any, error: undefined] | readonly [value: undefined, error: BaseError<string>]'.
+// Type Error: '{ name: string; }' is not assignable to type 'readonly [value: any, error: undefined] | readonly [value: undefined, error: BaseError<string>]'.
 const createUser2 = Result.resultableFn(async function(name: string) {
     if (name.length < 3) {
         return Result.err(new Result.UnknownException("Name must be at least 3 characters"));
