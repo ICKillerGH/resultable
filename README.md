@@ -121,6 +121,9 @@ const createUser = Result.resultableFn(async function(name: string) {
     return Result.ok({name})
 });
 
+const userResult = await createUser("John Doe");
+// userResult type -> Result.Result<{ name: string; }, Result.UnknownException>
+
 // Invalid code
 // Type Error: '{ name: string; }' is not assignable to type 'readonly [value: any, error: undefined] | readonly [value: undefined, error: BaseError<string>]'.
 const createUser2 = Result.resultableFn(async function(name: string) {
