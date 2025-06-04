@@ -1,6 +1,6 @@
 import { MakeMatchObj, matchBrand } from "./match";
 
-export const TypeId = Symbol.for("@Shared/BaseError");
+export const TypeId: unique symbol = Symbol.for("@Shared/BaseError");
 export type TypeId = typeof TypeId;
 
 export type BaseError<T extends string> = Error & {
@@ -12,7 +12,7 @@ export function BrandedError<T extends string>(
   brand: T
 ): new (...args: any) => BaseError<T> {
   class BaseBrandedError extends Error {
-    readonly [TypeId] = TypeId;
+    readonly [TypeId]: TypeId = TypeId;
     readonly __brand: T = brand;
   }
 
