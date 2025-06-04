@@ -1,6 +1,6 @@
 {
   "name": "resultable",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "A small package to handle errors as values",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
