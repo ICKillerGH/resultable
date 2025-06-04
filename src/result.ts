@@ -1,7 +1,7 @@
 import { MakeMatchObj, matchBrand } from "./match";
 
-const TypeId = Symbol.for("@Shared/BaseError");
-type TypeId = typeof TypeId;
+export const TypeId = Symbol.for("@Shared/BaseError");
+export type TypeId = typeof TypeId;
 
 export type BaseError<T extends string> = Error & {
   readonly [TypeId]: TypeId;
