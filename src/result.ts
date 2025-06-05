@@ -65,7 +65,7 @@ export const resultableFn = <
   const callback = async (...args: Params) => {
     const result = await fn(...args);
 
-    if (isBaseError(result)) {
+    if (isBrandedError(result)) {
       return err(result);
     }
 
@@ -270,7 +270,7 @@ export function isErr<T, E extends BaseError<string>>(
   return typeof error !== "undefined" && error[TypeId] === TypeId;
 }
 
-export function isBaseError(value: unknown): value is BaseError<any> {
+export function isBrandedError(value: unknown): value is BaseError<any> {
   return typeof value === "object" && value !== null && TypeId in value;
 }
 
