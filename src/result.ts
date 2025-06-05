@@ -21,6 +21,12 @@ export function BrandedError<T extends string>(
   return BaseBrandedError as any;
 }
 
+export class UnknownException extends BrandedError("@Shared/UnknownException") {
+  constructor(public readonly cause: unknown) {
+    super("Unknown error", { cause });
+  }
+}
+
 export type OkResult<T> = Readonly<[value: T, error: undefined]>;
 export type ErrorResult<E extends BaseError<string>> = Readonly<
   [value: undefined, error: E]
@@ -39,19 +45,34 @@ export type MergeResults<TUnion extends OkResult<any> | ErrorResult<any>> =
     ? ErrorResult<ExtractErr<TUnion>>
     : Result<ExtractOk<TUnion>, ExtractErr<TUnion>>; // Ambos casos
 
-export class UnknownException extends BrandedError("@Shared/UnknownException") {
-  constructor(public readonly cause: unknown) {
-    super("Unknown error", { cause });
-  }
-}
+type NormalizeResult<R> = R extends OkResult<infer T>
+  ? R
+  : R extends ErrorResult<infer E>
+  ? R
+  : R extends BaseError<infer E>
+  ? ErrorResult<R>
+  : never;
 
 export const resultableFn = <
-  P extends any[],
-  TUnion extends OkResult<any> | ErrorResult<BaseError<string>>
+  Params extends any[],
+  TUnion extends
+    | OkResult<any>
+    | ErrorResult<BaseError<string>>
+    | BaseError<string>
 >(
-  fn: (...args: P) => Promise<TUnion>
-): ((...args: P) => Promise<MergeResults<TUnion>>) => {
-  return fn as any;
+  fn: (...args: Params) => Promise<TUnion>
+): ((...args: Params) => Promise<MergeResults<NormalizeResult<TUnion>>>) => {
+  const callback = async (...args: Params) => {
+    const result = await fn(...args);
+
+    if (isBaseError(result)) {
+      return err(result);
+    }
+
+    return result;
+  };
+
+  return callback as any;
 };
 
 export function ok<T>(value: T): OkResult<T> {
@@ -247,6 +268,10 @@ export function isErr<T, E extends BaseError<string>>(
   const [, error] = result;
 
   return typeof error !== "undefined" && error[TypeId] === TypeId;
+}
+
+export function isBaseError(value: unknown): value is BaseError<any> {
+  return typeof value === "object" && value !== null && TypeId in value;
 }
 
 export function exhaustiveSwitchGuard(_: never): never {
