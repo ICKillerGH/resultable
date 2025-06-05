@@ -103,10 +103,10 @@ const fetchTest2: Promise<Result.Result<Response, FetchError>> = Result.tryCatch
 ```
 
 ## Result.resultableFn
-It's an identity function to force you to always return results
+It's an identity function to force you to always return results or branded errors
 
 ```typescript
-const resultableFn: <P extends any[], TUnion extends OkResult<any> | ErrorResult<BaseError<string>>>(fn: (...args: P) => Promise<TUnion>) => ((...args: P) => Promise<MergeResults<TUnion>>)
+const resultableFn: <Params extends any[], TUnion extends OkResult<any> | ErrorResult<BaseError<string>> | BaseError<string>>(fn: (...args: Params) => Promise<TUnion>) => ((...args: Params) => Promise<MergeResults<NormalizeResult<TUnion>>>)
 ```
 
 ```typescript
@@ -116,6 +116,10 @@ import { Result } from "resultable";
 const createUser = Result.resultableFn(async function(name: string) {
     if (name.length < 3) {
         return Result.err(new Result.UnknownException("Name must be at least 3 characters"));
+    }
+
+    if (name === "not-allowed") {
+        return new Result.UnknownException("Name not allowed");
     }
     
     return Result.ok({name})
