@@ -10,7 +10,8 @@
   ],
   "scripts": {
     "build": "tsup",
-    "test": "jest"
+    "test": "jest",
+    "preversion": "npm run build"
   },
   "keywords": [
     "Result",
