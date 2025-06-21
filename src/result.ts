@@ -1,4 +1,5 @@
 import { MakeMatchObj, matchBrand } from "./match";
+import { Equals } from "./util";
 
 export const TypeId: unique symbol = Symbol.for("@Shared/BaseError");
 export type TypeId = typeof TypeId;
@@ -10,10 +11,22 @@ export type BaseError<T extends string> = Error & {
 
 export function BrandedError<T extends string>(
   brand: T
-): new (...args: any) => BaseError<T> {
+): new <Args extends Record<string, any> = {}>(
+  args: Equals<Args, {}> extends true
+    ? void
+    : { readonly [P in keyof Args as P extends "__brand" ? never : P]: Args[P] }
+) => BaseError<T> & Args {
   class BaseBrandedError extends Error {
     readonly [TypeId]: TypeId = TypeId;
     readonly __brand: T = brand;
+
+    constructor(args?: Record<string, any>) {
+      super(args?.message || "An error occurred");
+
+      if (args) {
+        Object.assign(this, args);
+      }
+    }
   }
 
   (BaseBrandedError.prototype as any).name = brand;
@@ -21,9 +34,14 @@ export function BrandedError<T extends string>(
   return BaseBrandedError as any;
 }
 
-export class UnknownException extends BrandedError("@Shared/UnknownException") {
-  constructor(public readonly cause: unknown) {
-    super("Unknown error", { cause });
+export class UnknownException extends BrandedError("@Shared/UnknownException")<{
+  message?: string;
+  cause?: unknown;
+}> {
+  constructor(
+    args: { message?: string; cause?: unknown } = { message: "Unknown exception" }
+  ) {
+    super(args);
   }
 }
 
@@ -87,6 +105,12 @@ export function okVoid(): OkResult<void> {
   return [undefined, undefined];
 }
 
+export function fail(
+  args: ConstructorParameters<typeof UnknownException>[0] = {}
+): ErrorResult<UnknownException> {
+  return err(new UnknownException(args));
+}
+
 export function tryCatch<T>(
   fn: () => Promise<T>
 ): Promise<Result<T, UnknownException>>;
@@ -103,7 +127,7 @@ export async function tryCatch<T, E extends BaseError<string>>(
   try {
     return ok(await fn());
   } catch (e) {
-    return err(errorFn?.(e) ?? (new UnknownException(e) as any));
+    return err(errorFn?.(e) ?? (new UnknownException({ cause: e }) as any));
   }
 }
 
@@ -271,7 +295,12 @@ export function isErr<T, E extends BaseError<string>>(
 }
 
 export function isBrandedError(value: unknown): value is BaseError<any> {
-  return typeof value === "object" && value !== null && TypeId in value;
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    TypeId in value &&
+    value[TypeId] === TypeId
+  );
 }
 
 export function exhaustiveSwitchGuard(_: never): never {

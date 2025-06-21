@@ -2,6 +2,13 @@ import * as Result from "../src/result";
 
 class TestError extends Result.BrandedError("@Test/TestError") {}
 class TestError2 extends Result.BrandedError("@Test/TestError2") {}
+class TestErrorWithArgs extends Result.BrandedError("@Test/TestErrorWithArgs")<{
+  userId: number;
+  message: string;
+}> {}
+class TestErrorWithArgs2 extends Result.BrandedError(
+  "@Test/TestErrorWithArgs2"
+) {}
 
 describe("BrandedError", () => {
   test("Test BrandedError fullfills requirements", () => {
@@ -10,6 +17,20 @@ describe("BrandedError", () => {
     expect(error).toBeInstanceOf(Error);
     expect(error.__brand).toBe("@Test/TestError");
     expect(TestError.prototype.name).toBe("@Test/TestError");
+  });
+});
+
+describe("BrandedErrorWithArgs", () => {
+  test("Test BrandedErrorWithArgs fullfills requirements", () => {
+    const error = new TestErrorWithArgs({ userId: 1, message: "Test error" });
+    const error2 = new TestErrorWithArgs2();
+
+    expect(error).toBeInstanceOf(Error);
+    expect(error.__brand).toBe("@Test/TestErrorWithArgs");
+    expect(TestErrorWithArgs.prototype.name).toBe("@Test/TestErrorWithArgs");
+    expect(error.userId).toBe(1);
+    expect(error.message).toBe("Test error");
+    expect(error2.message).toBe("An error occurred");
   });
 });
 
