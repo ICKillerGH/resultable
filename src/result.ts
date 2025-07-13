@@ -198,12 +198,12 @@ export function mapErr<
 
 export function catchAllErr<T, E extends BaseError<string>, R>(
   mapper: Mapper<E, R>
-): (result: Result<T, E>) => OkResult<R>;
+): (result: Result<T, E>) => OkResult<T | R>;
 
 export function catchAllErr<T, E extends BaseError<string>, R>(
   result: Result<T, E>,
   mapper: Mapper<E, R>
-): OkResult<R>;
+): OkResult<T | R>;
 
 export function catchAllErr<T, E extends BaseError<string>, R>(
   resultOrMapper: Result<T, E> | Mapper<E, R>,
