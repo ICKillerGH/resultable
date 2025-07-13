@@ -154,10 +154,10 @@ const userResult = await createUser("John Doe");
 // Invalid code
 const createUser2 = Result.resultableFn(async function(name: string) {
     if (name.length < 3) {
-        return Result.err(new Result.UnknownException("Name must be at least 3 characters"));
+        return Result.err(new Result.UnknownException({message: "Name must be at least 3 characters"}));
     }
     
-    return {name}
+    return { name }
 });
 // -> Type Error: '{ name: string; }' is not assignable to type 'readonly [value: any, error: undefined] | readonly [value: undefined, error: BaseError<string>]'.
 ```
