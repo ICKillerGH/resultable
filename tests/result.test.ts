@@ -74,3 +74,80 @@ describe("fn types", () => {
     expect(errorResultTestError2[1]).toBeInstanceOf(TestError2);
   });
 });
+
+describe("catchAllErr", () => {
+  describe("catchAllErr catch error", () => {
+    test("Test catchAllErr works correctly", () => {
+      const _0 = Result.err(new TestError());
+
+      const result = Result.catchAllErr(
+        _0,
+        () => "There was an error!" as const
+      );
+
+      expect(result).toEqual(Result.ok("There was an error!"));
+    });
+  });
+
+  describe("catchAllErr ignore on ok", () => {
+    test("Test catchAllErr works correctly", () => {
+      const _0 = Result.ok(1);
+
+      const result = Result.catchAllErr(
+        _0,
+        () => "There was an error!" as const
+      );
+
+      expect(result).toEqual(Result.ok(1));
+    });
+  });
+});
+
+describe("catchAllBrands", () => {
+  describe("catchAllBrands catch error", () => {
+    test("Test catchAllBrands works correctly", () => {
+      const result = Result.catchAllBrands(Result.err(new TestError()), {
+        "@Shared/UnknownException": () => "Unknown exception occurred" as const,
+        "@Test/TestError": () => "Test error occurred" as const,
+      });
+      const result2 = Result.catchAllBrands(
+        Result.err(new Result.UnknownException()),
+        {
+          "@Shared/UnknownException": () =>
+            "Unknown exception occurred" as const,
+          "@Test/TestError": () => "Test error occurred" as const,
+        }
+      );
+
+      expect(result).toEqual(Result.ok("Test error occurred"));
+      expect(result2).toEqual(Result.ok("Unknown exception occurred"));
+    });
+  });
+
+  describe("catchAllBrands ignore on ok", () => {
+    test("Test catchAllBrands works correctly", async () => {
+      const _0 = await Result.tryCatch(() => Promise.resolve(1));
+
+      const result = Result.catchAllBrands(_0, {
+        "@Shared/UnknownException": () => "Unknown exception occurred" as const,
+      });
+
+      expect(result).toEqual(Result.ok(1));
+    });
+  });
+});
+
+describe("mapErr", () => {
+  test("Test mapErr works correctly", () => {
+    const _0 = Result.err(new TestError());
+
+    const result = Result.mapErr(_0, (err) => {
+      expect(err).toBeInstanceOf(TestError);
+      return new TestErrorWithArgs({ userId: 1, message: "Test error" });
+    });
+
+    expect(result).toEqual(
+      Result.err(new TestErrorWithArgs({ userId: 1, message: "Test error" }))
+    );
+  });
+});
