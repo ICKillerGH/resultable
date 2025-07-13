@@ -39,7 +39,9 @@ export class UnknownException extends BrandedError("@Shared/UnknownException")<{
   cause?: unknown;
 }> {
   constructor(
-    args: { message?: string; cause?: unknown } = { message: "Unknown exception" }
+    args: { message?: string; cause?: unknown } = {
+      message: "Unknown exception",
+    }
   ) {
     super(args);
   }
@@ -163,6 +165,38 @@ export function map<T, E extends BaseError<string>, R>(
   return typeof resultOrMapper === "function" ? fn : fn(resultOrMapper);
 }
 
+export function tap<T, E extends BaseError<string>, R extends Result<T, E>>(
+  cb: (value: T) => void
+): (result: R) => R;
+export function tap<T, E extends BaseError<string>, R extends Result<T, E>>(
+  result: R,
+  cb: (value: T) => void
+): R;
+export function tap<T, E extends BaseError<string>, R extends Result<T, E>>(
+  resultOrCb: R | ((value: T) => void),
+  cb?: (value: T) => void
+): R | ((result: R) => R) {
+  if (typeof resultOrCb === "function") {
+    cb = resultOrCb;
+    return (result: R) => {
+      if (isErr(result)) {
+        return result;
+      }
+      cb!(result[0]);
+      return result;
+    };
+  }
+
+  const result = resultOrCb;
+
+  if (isErr(result)) {
+    return result;
+  }
+
+  cb!(result[0]);
+  return result;
+}
+
 export function mapErr<
   T,
   E extends BaseError<string>,
@@ -194,6 +228,38 @@ export function mapErr<
   };
 
   return typeof resultOrMapper === "function" ? fn : fn(resultOrMapper);
+}
+
+export function tapErr<T, E extends BaseError<string>>(
+  cb: (error: E) => void
+): (result: Result<T, E>) => Result<T, E>;
+export function tapErr<T, E extends BaseError<string>>(
+  result: Result<T, E>,
+  cb: (error: E) => void
+): Result<T, E>;
+export function tapErr<T, E extends BaseError<string>>(
+  resultOrCb: Result<T, E> | ((error: E) => void),
+  cb?: (error: E) => void
+) {
+  if (typeof resultOrCb === "function") {
+    cb = resultOrCb;
+    return (result: Result<T, E>) => {
+      if (isErr(result)) {
+        cb!(result[1]);
+        return result;
+      }
+      return result;
+    };
+  }
+
+  const result = resultOrCb;
+
+  if (isErr(result)) {
+    cb!(result[1]);
+    return result;
+  }
+
+  return result;
 }
 
 export function catchAllErr<T, E extends BaseError<string>, R>(
