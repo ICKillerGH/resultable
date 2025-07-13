@@ -92,6 +92,7 @@ export const resultableFn = <
 
   return callback as any;
 };
+export const fn = resultableFn;
 
 export function ok<T>(value: T): OkResult<T> {
   return [value, undefined];

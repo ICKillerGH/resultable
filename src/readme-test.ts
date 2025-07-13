@@ -77,12 +77,12 @@ const createUser = Result.resultableFn(async function(name: string) {
     return Result.ok({name})
 });
 
-const userResult = await createUser("John Doe");
+// const userResult = await createUser("John Doe");
 
-const createUser2 = Result.resultableFn(async function(name: string) {
-    if (name.length < 3) {
-        return Result.err(new Result.UnknownException({message: "Name must be at least 3 characters"}));
-    }
+// const createUser2 = Result.resultableFn(async function(name: string) {
+//     if (name.length < 3) {
+//         return Result.err(new Result.UnknownException({message: "Name must be at least 3 characters"}));
+//     }
     
-    return { name }
-});
+//     return { name }
+// });

@@ -34,27 +34,27 @@ describe("BrandedErrorWithArgs", () => {
   });
 });
 
-describe("resultableFn types", () => {
+describe("fn types", () => {
   test("Test it only can return Result and BrandedError", async () => {
     // @ts-expect-error
-    Result.resultableFn(async () => {
+    Result.fn(async () => {
       return [1];
     });
 
     // @ts-expect-error
-    Result.resultableFn(async () => {
+    Result.fn(async () => {
       return [undefined, new Error()];
     });
 
-    const okResult = await Result.resultableFn(async () => {
+    const okResult = await Result.fn(async () => {
       return Result.ok(1);
     })();
 
-    const errorResult = await Result.resultableFn(async () => {
+    const errorResult = await Result.fn(async () => {
       return Result.err(new TestError());
     })();
 
-    const resultable = Result.resultableFn(
+    const resultable = Result.fn(
       async (succeed: boolean, failEarly: boolean = false) => {
         if (failEarly) {
           return new TestError2();
