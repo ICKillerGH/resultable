@@ -8,22 +8,25 @@ import { Match, Result } from "resultable";
 class UserNotFound extends Result.BrandedError("UserNotFound") {}
 class UserServiceUnavailable extends Result.BrandedError("UserServiceUnavailable") {}
 
-declare const [user, userError]: Result.Result<{id: 1; name: string}, UserNotFound|UserServiceUnavailable>;
+declare const userResult: Result.Result<{id: 1; name: string}, UserNotFound|UserServiceUnavailable>;
 
-if (userError) {
-    Match.matchBrand(userError)({
-        "UserNotFound": () => console.log("User not found"),
-        "UserServiceUnavailable": () => console.log("User service unavailable")
-    })
-} else {
-    console.log("User", user);
-}
+Result.match(
+    userResult,
+    {
+        onOk: (user) => console.log("User", user),
+        onError: (userError) => Match.matchBrand(userError)({
+            "UserNotFound": () => console.log("User not found"),
+            "UserServiceUnavailable": () => console.log("User service unavailable")
+        })
+    }
+);
 ```
 
 # Features
 
 - Result type in the form of a tuple [value, error]
 - BrandedErrors to differentiate between different errors
+- Pattern matching on results
 - Pattern matching on errors
 
 # Installation
@@ -67,6 +70,50 @@ import { Result } from "resultable";
 const okResult = Result.ok(1);
 const errResult = Result.err(new Result.UnknownException("Unkown error"));
 const okVoidResult = Result.okVoid();
+```
+
+## Result.match
+`Result.match` lets you branch on a result without manually unpacking the tuple. It supports both direct and curried usage.
+
+```typescript
+function match<T, E extends BaseError<string>, ROk, RErr>(
+  handlers: {
+    onOk: (value: T) => ROk;
+    onError: (error: E) => RErr;
+  },
+): (result: Result<T, E>) => ROk | RErr;
+
+function match<T, E extends BaseError<string>, ROk, RErr>(
+  result: Result<T, E>,
+  handlers: {
+    onOk: (value: T) => ROk;
+    onError: (error: E) => RErr;
+  },
+): ROk | RErr;
+```
+
+```typescript
+import { Match, Result } from "resultable";
+
+class UserNotFound extends Result.BrandedError("UserNotFound") {}
+class UserServiceUnavailable extends Result.BrandedError("UserServiceUnavailable") {}
+
+declare const userResult: Result.Result<
+  { id: 1; name: string },
+  UserNotFound | UserServiceUnavailable
+>;
+
+const message = Result.match(
+  userResult,
+  {
+    onOk: (user) => `Hello ${user.name}`,
+    onError: (error) =>
+      Match.matchBrand(error)({
+        UserNotFound: () => "User not found",
+        UserServiceUnavailable: () => "User service unavailable",
+      }),
+  },
+);
 ```
 
 ## Result.tryCatch

@@ -53,3 +53,59 @@ describe("resultableFn types", () => {
     expect(errorResultTestError2[1]).toBeInstanceOf(TestError2);
   });
 });
+
+describe("match", () => {
+  test("matches successful results", () => {
+    const result = Result.match(
+      Result.ok(2),
+      {
+        onOk: (value) => value * 2,
+        onError: (error) => error.__brand,
+      }
+    );
+
+    const typedResult: number = result;
+
+    expect(typedResult).toBe(4);
+  });
+
+  test("matches error results", () => {
+    const result = Result.match(
+      Result.err(new TestError()),
+      {
+        onOk: (_value: number) => _value * 2,
+        onError: (error) => error.__brand,
+      }
+    );
+
+    const typedResult: "@Test/TestError" = result;
+
+    expect(typedResult).toBe("@Test/TestError");
+  });
+
+  test("supports curried usage and okVoid", () => {
+    const matcher = Result.match({
+      onOk: () => "ok" as const,
+      onError: (error: TestError) => error.__brand,
+    });
+
+    const result = matcher(Result.okVoid());
+
+    const typedResult: "ok" = result;
+
+    expect(typedResult).toBe("ok");
+  });
+
+  test("supports curried usage for error results", () => {
+    const matcher = Result.match({
+      onOk: (_value: number) => _value * 2,
+      onError: (error: TestError) => error.__brand,
+    });
+
+    const result = matcher(Result.err(new TestError()));
+
+    const typedResult: "@Test/TestError" = result;
+
+    expect(typedResult).toBe("@Test/TestError");
+  });
+});

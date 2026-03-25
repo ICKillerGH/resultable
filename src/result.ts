@@ -108,6 +108,10 @@ export async function tryCatch<T, E extends BaseError<string>>(
 }
 
 type Mapper<T, R> = (value: T) => R;
+type MatchHandlers<T, E extends BaseError<string>, ROk, RErr> = {
+  onOk: Mapper<T, ROk>;
+  onError: Mapper<E, RErr>;
+};
 
 export function map<T, E extends BaseError<string>, R>(
   mapper: Mapper<T, R>
@@ -250,6 +254,53 @@ export function catchAllBrands<
   return (
     isResult(resultOrBrandMappers) ? fn(resultOrBrandMappers) : fn
   ) as any;
+}
+
+export function match<T, E extends BaseError<string>, ROk, RErr>(
+  handlers: MatchHandlers<T, E, ROk, RErr>
+): {
+  (result: OkResult<T>): ROk;
+  (result: ErrorResult<E>): RErr;
+  (result: Result<T, E>): ROk | RErr;
+};
+
+export function match<T, E extends BaseError<string>, ROk, RErr>(
+  result: OkResult<T>,
+  handlers: MatchHandlers<T, E, ROk, RErr>
+): ROk;
+
+export function match<
+  T,
+  E extends BaseError<string>,
+  ROk,
+  RErr
+>(
+  result: ErrorResult<E>,
+  handlers: MatchHandlers<T, E, ROk, RErr>
+): RErr;
+
+export function match<T, E extends BaseError<string>, ROk, RErr>(
+  result: Result<T, E>,
+  handlers: MatchHandlers<T, E, ROk, RErr>
+): ROk | RErr;
+
+export function match<T, E extends BaseError<string>, ROk, RErr>(
+  resultOrHandlers: Result<T, E> | MatchHandlers<T, E, ROk, RErr>,
+  handlers?: MatchHandlers<T, E, ROk, RErr>
+) {
+  const isResult = (value: unknown): value is Result<T, E> => Array.isArray(value);
+
+  const finalHandlers = isResult(resultOrHandlers) ? handlers! : resultOrHandlers;
+
+  const fn = (result: Result<T, E>) => {
+    if (isErr(result)) {
+      return finalHandlers.onError(result[1]);
+    }
+
+    return finalHandlers.onOk(result[0]);
+  };
+
+  return isResult(resultOrHandlers) ? fn(resultOrHandlers) : fn;
 }
 
 export function unwrap<T>(result: OkResult<T>): T {
